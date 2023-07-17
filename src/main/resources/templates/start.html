@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Test</title>
+<link rel="stylesheet"
+	href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<script
+	src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<style>
+body {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	height: 100vh;
+	margin: 0;
+	background-color: #333;
+	transition: background-color 0.5s ease;
+}
+
+.container {
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	height: 100%;
+	margin-top: 100px;
+}
+
+.logocontainer {
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	height: 100%;
+	margin-top: 100px;
+}
+
+.box {
+	width: 50%;
+	height: 50%;
+	border-radius: 20px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	cursor: pointer;
+	background: linear-gradient(114deg, #398cfa 0, #0bbf83 100%);
+	color: white;
+}
+
+.box p {
+	font-size: 20px;
+	color: white;
+}
+
+.navbar {
+	width: 80%;
+	border-radius: 15px;
+}
+
+.image-container, .target-container, #boardBox {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	cursor: pointer;
+}
+
+.image-container img, .target-container img, #boardBox img {
+	width: 200px;
+	height: 200px;
+	transition: transform 0.5s;
+}
+
+.image-container:hover img, .target-container:hover img, #boardBox:hover img
+	{
+	transform: scale(1.1);
+	animation: strike 1s infinite;
+}
+
+.image-container h3, .target-container h3, #boardBox h3 {
+	color: white;
+	font-size: 25px;
+	margin: 10px 0;
+	transition: transform 0.5s;
+}
+
+.image-container:hover h3, .target-container:hover h3, #boardBox:hover h3
+	{
+	transform: scale(1.1);
+}
+
+.footer {
+	background-color: #333;
+	padding: 10%;
+	color: white;
+	text-align: center;
+}
+
+.social-icons {
+	position: fixed;
+	left: 0;
+	top: 40%;
+	transform: translateY(-50%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.social-icon {
+	margin: 1px 0;
+	transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.social-icon:hover {
+	transform: scale(1.2);
+	box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.mainimage {
+	position: relative;
+}
+
+.mainimage img {
+	width: 300px;
+	height: 300px;
+	transition: transform 0.5s;
+}
+
+.mainimage img:hover {
+	transform: scale(1.1);
+	animation: rotate 2s infinite linear;
+	
+	
+}
+</style>
+
+</head>
+<body>
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="start"><img alt="logo"
+				src="/images/banner.png"></a>
+			<div class="navbar-nav ml-auto d-flex flex-row">
+				<div th:if="${session.member != null}" class="d-flex flex-row">
+					<a class="nav-link"
+						th:href="@{/updateMember(id=${session.member.id})}"> <font
+						class="bg bg-success" th:text="${session.member.name} + '님'"></font>
+					</a> <a class="nav-link" href="logout" onclick="confirmLogout()">로그아웃</a>
+					<a class="nav-link" href="getBoardList">게시판</a>
+				</div>
+				<div th:if="${session.member == null}" class="d-flex flex-row">
+					<a class="nav-link" href="login">로그인</a> <a class="nav-link"
+						href="insertMember">회원가입</a>
+				</div>
+			</div>
+		</div>
+	</nav>
+	<div class="mainimage">
+		<img src="/images/mainlogo.png" alt="메인로고" /> <a href="start"></a>
+	</div>
+	<div class="box">
+		<h3> <img alt="project" src="/images/banner2.png">
+			</h3>
+	</div>
+
+	<div class="container">
+		<div class="image-container" onclick="reactionBoxClick()">
+			<img src="/images/thunder.png" alt="반응속도 테스트"
+				style="cursor: pointer;">
+			<h3>⚡ 반응속도 테스트 ⚡</h3>
+		</div>
+
+		<div class="target-container" onclick="spacebarBoxClick()">
+			<img src="/images/target.png" alt="과녁" id="target">
+			<h3>🎯 APM 테스트 🎯</h3>
+		</div>
+
+		<div id="boardBox" onclick="rankBoxClick()">
+			<img src="/images/board.png" alt="랭킹">
+			<h3>🛠 게시판 🛠</h3>
+		</div>
+	</div>
+
+	<div class=" logocontainer social-icons">
+		<div class="social-icons">
+			<a href="https://twitter.com/your-share-url" target="_blank"> <img
+				src="/images/twitter.png" alt="Twitter" class="social-icon">
+			</a> <a href="https://www.facebook.com/your-share-url" target="_blank">
+				<img src="/images/facebook.png" alt="Facebook" class="social-icon">
+			</a> <a href="https://www.instagram.com/your-share-url" target="_blank">
+				<img src="/images/instagram.png" alt="Instagram" class="social-icon">
+			</a> <a href="https://discord.com/" target="_blank"> <img
+				src="/images/discord.png" alt="Naver" class="social-icon">
+			</a> <a href="https://www.reddit.com/your-share-url" target="_blank">
+				<img src="/images/reddit.png" alt="Reddit" class="social-icon">
+			</a> <a href="https://www.tiktok.com/your-share-url" target="_blank">
+				<img src="/images/tiktok.png" alt="TikTok" class="social-icon">
+			</a>
+		</div>
+	</div>
+
+	<footer class="footer">
+		<p>&copy; 2023 프로젝트. All rights reserved.</p>
+	</footer>
+	<script>
+		function login() {
+			localStorage.setItem('logged-in', 'true');
+		}
+
+		function logout() {
+			localStorage.removeItem('logged-in');
+		}
+
+		function checkLogin() {
+			var loggedIn = localStorage.getItem('logged-in') !== null ? localStorage
+					.getItem('logged-in') === 'true'
+					: false;
+			console.log("checkLogin returns: " + loggedIn);
+			return loggedIn;
+		}
+
+		function reactionBoxClick() {
+			if (checkLogin()) {
+				window.location.href = "testPage";
+			} else {
+				alert('로그인이 필요한 서비스입니다.');
+				window.location.href = "login";
+			}
+		}
+
+		function spacebarBoxClick() {
+			if (checkLogin()) {
+				window.location.href = "apmTest";
+			} else {
+				alert('로그인이 필요한 서비스입니다.');
+				window.location.href = "login";
+			}
+		}
+
+		function rankBoxClick() {
+			if (checkLogin()) {
+				window.location.href = "getBoardList";
+			} else {
+				alert('로그인이 필요한 서비스입니다.');
+				window.location.href = "login";
+			}
+		}
+
+		function confirmLogout() {
+			if (confirm("로그아웃 하시겠습니까?")) {
+				logout();
+			}
+		}
+	</script>
+
+</body>
+</html>

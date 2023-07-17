@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Board List</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+<link rel="stylesheet"
+	href="https://use.fontawesome.com/releases/v5.4.1/css/all.css"
+	integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz"
+	crossorigin="anonymous">
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+	rel="stylesheet"
+	integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+	crossorigin="anonymous">
+<script
+	src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+	integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+	crossorigin="anonymous"></script>
+</head>
+<style>
+body {
+	background-color: #333;
+}
+
+.navbar {
+	width: 80%;
+	border-radius: 15px;
+	margin: 0 auto;
+}
+
+.goimages {
+	position: fixed;
+	right: 0;
+	top: 40%;
+	transform: translateY(-50%);
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	opacity: 0;
+	transition: opacity 1.5s;
+}
+
+.goimages.show {
+	opacity: 1;
+}
+
+.goimages .goimage-container {
+	position: relative;
+	overflow: hidden;
+}
+
+.goimages .goimage {
+	margin: 1px 0;
+	transition: transform 0.3s, opacity 0.3s;
+	transform: translateX(0);
+}
+
+.goimages .goimage-container:hover .goimage {
+	transform: translateX(100%);
+}
+
+.goimages .hover-text {
+	position: absolute;
+	right: 0;
+	top: 50%;
+	transform: translateY(-50%) translateX(100%);
+	font-size: 20px;
+	color: white;
+	padding: 5px 10px;
+	border-radius: 5px;
+	transition: transform 0.3s;
+	text-align: center;
+}
+
+.goimages .goimage-container:hover .hover-text {
+	transform: translateY(-50%) translateX(0);
+}
+.footer {
+	background-color: #333;
+	padding: 10%;
+	color: white;
+	text-align: center;
+}
+
+</style>
+<body>
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="start"><img alt="logo"
+				src="/images/banner.png"></a>
+			<div class="navbar-nav ml-auto d-flex flex-row">
+				<div th:if="${session.member != null}" class="d-flex flex-row">
+					<a class="nav-link"
+						th:href="@{/updateMember(id=${session.member.id})}"> <font
+						class="bg bg-success" th:text="${session.member.name} + '님'"></font>
+					</a> <a class="nav-link" href="logout" onclick="logout()">로그아웃</a> <a
+						class="nav-link" href="getBoardList">게시판</a>
+				</div>
+				<div th:if="${session.member == null}" class="d-flex flex-row">
+					<a class="nav-link" href="login" onclick="login()">로그인</a> <a
+						class="nav-link" href="insertMember">회원가입</a>
+				</div>
+			</div>
+		</div>
+	</nav>
+
+	<div class="container" align="center">
+		<div class="mt-4 p-5  text-white rounded" style="background: linear-gradient(114deg, #398cfa 0, #0bbf83 100%);">
+			<h3>✨✨ 게시판 ✨✨</h3>
+			<h5>
+				<font class="" th:if="${session.member != null}"
+					th:text="|${session['member'].name}(${session.member.id})|"></font>님
+				로그인중 <hr /> 🔥 다른 회원의 게시글은 수정이 불가합니다 🔥 <br /> 😳 파일 첨부는 게시글 당 1개까지만 가능합니다 😳 <font class="bg bg-primary" th:if="${session.member == null}">로그인이
+					필요합니다.</font>
+			</h5>
+		</div>
+		<!-- 		  
+ 		<p th:text="${session.member.toString()}"></p>
+		<p th:text="${pagedResult.getContent()}"></p> 
+		<p th:text="${pagingInfo}"></p> 
+-->
+		<form action="getBoardList" method="get" id="boardForm">
+			<input type="hidden" id="curPage" name="curPage" th:value="0">
+			<input type="hidden" id="rowSizePerPage" name="rowSizePerPage"
+				th:value="${rp}">
+			<div class="row mt-3 justify-content-center">
+				<div class="col-auto me-1">
+					<label class="input-group-text bg-dark" style="color: white;"
+						th:text="|${pageable.getPageNumber()*pageable.getPageSize()+1} of ${pagedResult.getTotalElements()}|"></label>
+				</div>
+				<div class="col-auto me-1">
+					<select class="form-select bg-dark" style="color: white;"
+						id="searchType" name="searchType">
+						<option value="">검색</option>
+						<option value="title" th:selected="${st}=='title'">글제목</option>
+						<option value="writer" th:selected="${st}=='writer'">사용자</option>
+						<option value="content" th:selected="${st}=='content'">글내용</option>
+					</select>
+				</div>
+				<div class="col-3 me-1">
+					<input class="form-control me-2 bg-dark" style="color: white;"
+						name="searchWord" type="text"
+						placeholder="input search keyword..." />
+				</div>
+				<div class="col-5 btn-group">
+					<input type="reset" id="btnReset"
+						class="col-1 btn btn-success me-2" value="초기화"> <input
+						type="submit" class="col-1 btn btn-success me-2" value="검색">
+					<a th:href="insertBoard" class="col-1 btn btn-success me-2">글작성</a>
+					<a th:href="logout" class="col-1 btn btn-danger">로그아웃</a>
+				</div>
+			</div>
+		</form>
+		<!-- getBoardList -->
+
+
+		<div class="container mt-3">
+			<div class="row mt-4">
+				<table class="table table-hover table-dark table-striped">
+					<thead class="table-dark text-center">
+						<th class="col-1 text-center">글번호</th>
+						<th class="col-1 text-center">카테고리</th>
+						<th class="col-5">제목</th>
+						<th class="col-1 text-center">작성자</th>
+						<th class="col-1 text-center">등록일</th>
+						<th class="col-1 text-center">조회수</th>
+						<th class="col text-center">파일</th>
+						<th class="col text-center">답변상태</th>
+					</thead>
+					<tbody>
+						<tr th:each="board, state : ${pagedResult.getContent()}">
+							<td th:text="${board.seq}"
+								style="color: white; text-align: center;"></td>
+							<td th:text="${board.category}"
+								style="color: white; text-align: center;"></td>
+							<td><a th:href="@{/getBoard(seq=${board.seq})}"
+								th:text="${board.title}"
+								style="color: white; text-align: center;"></a></td>
+							<td th:text="${board.writer}"
+								style="color: white; text-align: center;"></td>
+							<td th:text="${#dates.format(board.createDate, 'yyyy-MM-dd')}"
+								style="color: white; text-align: center;"></td>
+							<td th:text="${board.cnt}"
+								style="color: white; text-align: center;"></td>
+							<td align="center"><span
+								th:if="${not #strings.isEmpty(board.fileName)}"
+								style="color: white; text-align: center;">Y</span> <span
+								th:unless="${not #strings.isEmpty(board.fileName)}"
+								style="color: white; text-align: center;">N</span></td>
+							<td th:text="${board.adminReply == null ? '확인중' : '답변완료'}"
+								style="color: white; text-align: center;"></td>
+
+						</tr>
+					</tbody>
+
+				</table>
+			</div>
+		</div>
+		<!-- 게시판 -->
+
+
+		<div class="row align-items-start mt-3">
+
+			<div class="col">
+				<a th:if="${session['member'].role == 'ADMIN'}"
+					th:href="@{/getMemberList}" class="btn btn-warning btn-sm">사용자목록</a>
+			</div>
+
+			<ul class="col-9 btn-sm pagination justify-content-center">
+				<th:block th:if="${sp != 1 }">
+					<li class="page-item"><a
+						th:href="@{/getBoardList(curPage=0, rowSizePerPage=${rp}, searchType=${st}, searchWord=${sw})}"
+						class="page-link"><i class="fas fa-fast-backward"></i></a></li>
+					<li class="page-item"><a
+						th:href="@{/getBoardList(curPage=${sp-ps}, rowSizePerPage=${rp}, searchType=${st}, searchWord=${sw})}"
+						class="page-link"><i class="fas fa-backward"></i></a></li>
+				</th:block>
+
+				<th:block
+					th:each="page : ${#numbers.sequence(pagingInfo.getStartPage(), pagingInfo.getEndPage())}">
+					<li class="page-item"
+						th:classappend="${(page-1)==pagingInfo.getCurPage() ? 'active' : ''}"><a
+						class="page-link bg-dark"
+						th:href="@{/getBoardList(curPage=${page-1}, rowSizePerPage=${rp}, searchType=${st}, searchWord=${sw})}"
+						th:text="${page}"></a></li>
+				</th:block>
+
+				<th:block th:if="${ ep lt tp }">
+					<li class="page-item"><a
+						th:href="@{/getBoardList(curPage=${ep}, rowSizePerPage=${rp}, searchType=${st}, searchWord=${sw})}"
+						class="page-link"><i class="fas fa-forward"></i></a></li>
+					<li class="page-item"><a
+						th:href="@{/getBoardList(curPage=${tp-1}, rowSizePerPage=${rp}, searchType=${st}, searchWord=${sw})}"
+						class="page-link"><i class="fas fa-fast-forward"></i></a></li>
+				</th:block>
+			</ul>
+			<!-- pagination -->
+
+			<div class="col-auto me-1">
+				<div class="input-group mb-3">
+					<span class="input-group-text bg-dark" style="color: white;"><i
+						class="fas fa-list"></i></span> <select
+						class="col-auto form-select bg-dark" style="color: white;"
+						id="rowPerPage" name="rowPerPage">
+						<th:block th:each="num : ${#numbers.sequence(10, 50, 10)}">
+							<option th:value="${num}" th:text="${num}"
+								th:attr="selected=${rp==num ? 'true' : 'false'}"></option>
+						</th:block>
+					</select>
+				</div>
+			</div>
+			<!-- rowSizePerPage -->
+
+		</div>
+		<!-- 페이징 -->
+
+	</div>
+	<!-- main  -->
+	<div class="goimages">
+		<a href="start" class="goimage-container"> <img
+			src="/images/gohome-001.png" alt="gohome" class="link-icon goimage">
+			<span class="hover-text">홈으로</span>
+		</a> <a href="testPage" class="goimage-container"> <img
+			src="/images/goreaction-001.png" alt="goreaction" class="link-icon goimage">
+			<span class="hover-text">반응속도 테스트</span>
+		</a> <a href="apmTest" class="goimage-container"> <img
+			src="/images/goapm-001.png" alt="goapm" class="link-icon goimage">
+			<span class="hover-text">APM 테스트</span>
+		</a>
+	</div>
+	<script>
+		$(function() {
+			
+			// 목록 갯수 변경
+			$('#rowPerPage').change(function(e) {
+				$('#curPage').val(0);
+				$('#rowSizePerPage').val($(this).val());
+				$('#boardForm').submit();
+			});	//#rowPerPage
+			
+			// 초기화 버튼 클릭
+			$('#btnReset').click(function() {
+				$('#curPage').val(0);
+				$('#boardForm').find("select[name='searchType'] option:eq(0)").attr("selected", "selected");
+				$('#boardForm').find("input[name='searchWord']").val("");
+				$('#boardForm').submit();
+			}); // #id_btn_reset.click			
+		})
+	</script>
+
+	<!-- member.id를 반복문안에서만 접근가능 나중에 확인해 볼 것 -->
+	<script th:inline="javascript">
+	/*<![CDATA[*/
+		function deleteCheck() {
+			if(confirm("삭제을 하겠습니까?")) {
+				alert([[${cp}]]);				
+			} else {
+				return false;
+			}
+		}
+	/*]]>*/
+	</script>
+	<script>
+window.addEventListener('load', function() {
+    let goimages = document.querySelector('.goimages');
+    goimages.classList.add('show');
+});
+</script>
+	<footer class="footer">
+		<p>&copy; 2023 프로젝트. All rights reserved.</p>
+	</footer>
+</body>
+</html>
